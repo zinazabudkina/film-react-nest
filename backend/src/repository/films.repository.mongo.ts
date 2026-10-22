@@ -42,7 +42,7 @@ export class MongoFilmsRepository {
     return film.schedule.map((session) => ({
       id: session.id,
       daytime: session.daytime,
-      hall: String(session.hall),
+      hall: session.hall,
       rows: session.rows,
       seats: session.seats,
       price: session.price,
