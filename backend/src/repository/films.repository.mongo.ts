@@ -32,11 +32,11 @@ export class MongoFilmsRepository {
     return this.filmModel.findOne({ id }).lean();
   }
 
-  async findScheduleByFilmId(id: string): Promise<ScheduleDto[]> {
+  async findScheduleByFilmId(id: string): Promise<ScheduleDto[] | null> {
     const film = await this.findById(id);
 
     if (!film) {
-      return [];
+      return null;
     }
 
     return film.schedule.map((session) => ({
@@ -53,11 +53,16 @@ export class MongoFilmsRepository {
     filmId: string,
     sessionId: string,
     place: string,
-  ): Promise<void> {
-    await this.filmModel.updateOne(
+  ): Promise<boolean> {
+    const result = await this.filmModel.updateOne(
       {
         id: filmId,
-        'schedule.id': sessionId,
+        schedule: {
+          $elemMatch: {
+            id: sessionId,
+            taken: { $ne: place },
+          },
+        },
       },
       {
         $addToSet: {
@@ -65,5 +70,7 @@ export class MongoFilmsRepository {
         },
       },
     );
+
+    return result.modifiedCount > 0;
   }
 }

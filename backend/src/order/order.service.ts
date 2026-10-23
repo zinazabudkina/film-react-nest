@@ -13,6 +13,7 @@ export class OrderService {
   constructor(private readonly filmsRepository: MongoFilmsRepository) {}
 
   async createOrder(order: OrderDto): Promise<OrderResponseDto> {
+    const places = new Set<string>();
     // проверяем все билеты
     for (const ticket of order.tickets) {
       const film = await this.filmsRepository.findById(ticket.film);
@@ -32,6 +33,13 @@ export class OrderService {
       if (session.taken.includes(place)) {
         throw new BadRequestException(`Место ${place} уже занято`);
       }
+      const placeKey = `${ticket.film}:${ticket.session}:${place}`;
+
+      if (places.has(placeKey)) {
+        throw new BadRequestException(`Место ${place} указано в заказе дважды`);
+      }
+
+      places.add(placeKey);
     }
 
     // Теперь занимаем места.
@@ -40,11 +48,15 @@ export class OrderService {
     for (const ticket of order.tickets) {
       const place = `${ticket.row}:${ticket.seat}`;
 
-      await this.filmsRepository.addTakenSeat(
+      const isBooked = await this.filmsRepository.addTakenSeat(
         ticket.film,
         ticket.session,
         place,
       );
+
+      if (!isBooked) {
+        throw new BadRequestException(`Место ${place} уже занято`);
+      }
 
       items.push({
         ...ticket,
