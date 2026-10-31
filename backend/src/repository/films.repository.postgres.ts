@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { FilmDto, ScheduleDto } from '../films/dto/films.dto';
+import { ScheduleDto } from '../films/dto/films.dto';
 import { Film } from '../films/entities/film.entity';
 import { Schedule } from '../films/entities/schedule.entity';
 import { FilmsRepository, FilmWithSchedule } from './films.repository';
@@ -17,8 +17,10 @@ export class PostgresFilmsRepository implements FilmsRepository {
     private readonly scheduleRepository: Repository<Schedule>,
   ) {}
 
-  async findAll(): Promise<FilmDto[]> {
-    const films = await this.filmRepository.find();
+  async findAll(): Promise<FilmWithSchedule[]> {
+    const films = await this.filmRepository.find({
+      relations: { schedule: true },
+    });
 
     return films.map((film) => ({
       id: film.id,
@@ -30,6 +32,15 @@ export class PostgresFilmsRepository implements FilmsRepository {
       description: film.description,
       image: film.image,
       cover: film.cover,
+      schedule: film.schedule.map((session) => ({
+        id: session.id,
+        daytime: session.daytime,
+        hall: session.hall,
+        rows: session.rows,
+        seats: session.seats,
+        price: session.price,
+        taken: session.taken ? session.taken.split(',') : [],
+      })),
     }));
   }
 

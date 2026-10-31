@@ -5,7 +5,7 @@ export interface FilmWithSchedule extends FilmDto {
 }
 
 export interface FilmsRepository {
-  findAll(): Promise<FilmDto[]>;
+  findAll(): Promise<FilmWithSchedule[]>;
 
   findById(id: string): Promise<FilmWithSchedule | null>;
 
