@@ -1,11 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 
 import { FilmsResponseDto, ScheduleResponseDto } from './dto/films.dto';
-import { MongoFilmsRepository } from '../repository/films.repository.mongo';
+import { FilmsRepository } from '../repository/films.repository';
 
 @Injectable()
 export class FilmsService {
-  constructor(private readonly filmsRepository: MongoFilmsRepository) {}
+  constructor(
+    @Inject('AppRepository')
+    private readonly filmsRepository: FilmsRepository,
+  ) {}
 
   async findAll(): Promise<FilmsResponseDto> {
     const items = await this.filmsRepository.findAll();
