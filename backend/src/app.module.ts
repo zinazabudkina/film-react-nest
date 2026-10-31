@@ -32,7 +32,7 @@ import { Schedule } from './films/entities/schedule.entity';
         type: 'postgres' as const,
         host: 'localhost',
         port: 5432,
-        database: 'prac',
+        database: configService.get<string>('DATABASE_NAME', 'films'),
         username: configService.get<string>('DATABASE_USERNAME'),
         password: configService.get<string>('DATABASE_PASSWORD'),
         entities: [Film, Schedule],
