@@ -30,8 +30,8 @@ import { Schedule } from './films/entities/schedule.entity';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres' as const,
-        host: 'localhost',
-        port: 5432,
+        host: configService.get<string>('DATABASE_HOST', 'localhost'),
+        port: configService.get<number>('DATABASE_PORT', 5432),
         database: configService.get<string>('DATABASE_NAME', 'films'),
         username: configService.get<string>('DATABASE_USERNAME'),
         password: configService.get<string>('DATABASE_PASSWORD'),

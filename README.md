@@ -1,5 +1,9 @@
 # FILM!
 
+## Развёрнутый проект
+
+Приложение доступно по адресу: http://project17.nomorepartiessite.ru/
+
 ## Установка
 
 ### MongoDB
