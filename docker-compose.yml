@@ -1,0 +1,72 @@
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+    image: ghcr.io/zinazabudkina/film-frontend:latest
+    volumes:
+      - frontend_dist:/shared
+    command: >
+      sh -c "rm -rf /shared/* /shared/.[!.]* /shared/..?*;
+      cp -a /dist/. /shared/"
+
+  backend:
+    build:
+      context: ./backend
+    image: ghcr.io/zinazabudkina/film-backend:latest
+    environment:
+      NODE_ENV: production
+      LOGGER_TYPE: json
+      DATABASE_HOST: db
+      DATABASE_PORT: 5432
+      DATABASE_NAME: films
+      DATABASE_USERNAME: films_user
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  nginx:
+    build:
+      context: ./nginx
+    image: ghcr.io/zinazabudkina/film-nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - frontend_dist:/usr/share/nginx/html:ro
+    depends_on:
+      frontend:
+        condition: service_completed_successfully
+      backend:
+        condition: service_started
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: films
+      POSTGRES_USER: films_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U films_user -d films"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+    ports:
+      - "8080:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - db
+
+volumes:
+  frontend_dist:
+  postgres_data:
+  pgadmin_data:
