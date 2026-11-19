@@ -1,9 +1,8 @@
 
 services:
   frontend:
-    build:
-      context: ./frontend
     image: ghcr.io/zinazabudkina/film-frontend:latest
+    restart: "no"
     volumes:
       - frontend_dist:/shared
     command: >
@@ -11,9 +10,8 @@ services:
       cp -a /dist/. /shared/"
 
   backend:
-    build:
-      context: ./backend
     image: ghcr.io/zinazabudkina/film-backend:latest
+    restart: unless-stopped
     environment:
       NODE_ENV: production
       LOGGER_TYPE: json
@@ -27,9 +25,8 @@ services:
         condition: service_healthy
 
   nginx:
-    build:
-      context: ./nginx
     image: ghcr.io/zinazabudkina/film-nginx:latest
+    restart: unless-stopped
     ports:
       - "80:80"
     volumes:
@@ -42,6 +39,7 @@ services:
 
   db:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_DB: films
       POSTGRES_USER: films_user
@@ -56,11 +54,12 @@ services:
 
   pgadmin:
     image: dpage/pgadmin4:latest
+    restart: unless-stopped
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
     ports:
-      - "8080:80"
+      - "127.0.0.1:8080:80"
     volumes:
       - pgadmin_data:/var/lib/pgadmin
     depends_on:
